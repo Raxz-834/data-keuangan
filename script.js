@@ -1,17 +1,15 @@
-// script.js
 let totalDana = 0;
 let rowNumber = 1;
 
 // Fungsi untuk memuat data dari localStorage
 function loadData() {
     const storedData = JSON.parse(localStorage.getItem('data')) || [];
-    // Reset total dana
     totalDana = 0;
     storedData.forEach((item, index) => {
-        addRowToTable(item.keterangan, item.uangMasuk, item.uangKeluar, index);
+        addRowToTable(item.keterangan, formatRibuan(item.uangMasuk), formatRibuan(item.uangKeluar), index);
         totalDana += item.uangMasuk - item.uangKeluar; // Hitung total dana
     });
-    document.getElementById('totalDana').innerText = totalDana;
+    document.getElementById('totalDana').innerText = formatRibuan(totalDana);
 }
 
 // Fungsi untuk menambahkan baris ke tabel
@@ -37,15 +35,15 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const keterangan = document.getElementById('keterangan').value;
-    const uangMasuk = parseFloat(document.getElementById('uangMasuk').value);
-    const uangKeluar = parseFloat(document.getElementById('uangKeluar').value);
+    const uangMasuk = bersihkanRibuan(document.getElementById('uangMasuk').value); // Bersihkan pemisah ribuan
+    const uangKeluar = bersihkanRibuan(document.getElementById('uangKeluar').value); // Bersihkan pemisah ribuan
 
     // Update total dana
     totalDana += uangMasuk - uangKeluar;
-    document.getElementById('totalDana').innerText = totalDana;
+    document.getElementById('totalDana').innerText = formatRibuan(totalDana);
 
     // Tambah data ke tabel
-    addRowToTable(keterangan, uangMasuk, uangKeluar, rowNumber - 1); // Indeks baru
+    addRowToTable(keterangan, formatRibuan(uangMasuk), formatRibuan(uangKeluar), rowNumber - 1); // Format dengan ribuan
 
     // Simpan data ke localStorage
     saveData(keterangan, uangMasuk, uangKeluar);
@@ -53,6 +51,16 @@ document.getElementById('dataForm').addEventListener('submit', function(e) {
     // Reset form
     document.getElementById('dataForm').reset();
 });
+
+// Fungsi untuk memformat angka dengan pemisah ribuan
+function formatRibuan(angka) {
+    return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+// Fungsi untuk membersihkan format ribuan sebelum perhitungan
+function bersihkanRibuan(angka) {
+    return parseFloat(angka.replace(/\./g, "")) || 0;
+}
 
 // Fungsi untuk menyimpan data ke localStorage
 function saveData(keterangan, uangMasuk, uangKeluar) {
@@ -63,19 +71,12 @@ function saveData(keterangan, uangMasuk, uangKeluar) {
 
 // Fungsi untuk menghapus baris dan data dari localStorage
 function deleteRow(index) {
-    // Ambil data dari localStorage
     const storedData = JSON.parse(localStorage.getItem('data')) || [];
-
-    // Hitung total dana sebelum penghapusan
     const item = storedData[index];
     totalDana -= item.uangMasuk - item.uangKeluar;
-    document.getElementById('totalDana').innerText = totalDana;
-
-    // Hapus item dari array
+    document.getElementById('totalDana').innerText = formatRibuan(totalDana);
     storedData.splice(index, 1);
     localStorage.setItem('data', JSON.stringify(storedData));
-
-    // Hapus baris dari tabel
     loadTable();
 }
 
@@ -89,7 +90,6 @@ function loadTable() {
 
 // Memuat data saat halaman dimuat
 window.onload = function() {
-    // Inisialisasi totalDana ke 0
     totalDana = 0;
     loadData();
 };
