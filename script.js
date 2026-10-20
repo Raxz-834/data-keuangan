@@ -25,7 +25,7 @@ function resetEdit() {
   document.getElementById('uangKeluar').value = 0;
   document.getElementById('formTitle').textContent = 'Tambah Transaksi';
   document.getElementById('modeLabel').textContent = 'Mode tambah';
-  document.getElementById('submitBtn').textContent = '+ Tambah Data';
+  document.getElementById('submitBtn').textContent = '+ Tambah Transaksi';
   document.getElementById('cancelBtn').hidden = true;
 }
 function render() {
