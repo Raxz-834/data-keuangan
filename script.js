@@ -39,8 +39,13 @@ function render() {
   let masuk = 0, keluar = 0;
   data.forEach((item, index) => {
     const inVal = nominal(item.uangMasuk), outVal = nominal(item.uangKeluar);
-    masuk += inVal; keluar += outVal;
+    if (!item.ryzenHidden) { masuk += inVal; keluar += outVal; }
     const tr = document.createElement('tr');
+    if (item.ryzenHidden) tr.classList.add('row-hidden');
+    const hideCell = document.createElement('td');
+    const hideCheck = document.createElement('input'); hideCheck.type = 'checkbox'; hideCheck.checked = !!item.ryzenHidden; hideCheck.setAttribute('aria-label', 'Hide transaksi ' + (item.keterangan ?? ''));
+    hideCheck.addEventListener('change', () => { const fresh = readData(); if (!fresh || !fresh[index]) return; fresh[index].ryzenHidden = hideCheck.checked; try { writeData(fresh); render(); } catch(e) { alert('Gagal menyimpan pilihan Hide.'); render(); } });
+    hideCell.appendChild(hideCheck); tr.appendChild(hideCell);
     const values = [index + 1, item.keterangan ?? '', inVal ? formatUang(inVal) : '—', outVal ? formatUang(outVal) : '—'];
     values.forEach((value, i) => {
       const td = document.createElement('td');
@@ -60,7 +65,7 @@ function render() {
   document.getElementById('totalMasuk').textContent = formatUang(masuk);
   document.getElementById('totalKeluar').textContent = formatUang(keluar);
   document.getElementById('totalDana').textContent = formatUang(masuk - keluar);
-  document.getElementById('countText').textContent = `${data.length} transaksi tercatat`;
+  document.getElementById('countText').textContent = `${data.length} transaksi tercatat · ${data.filter(x => x.ryzenHidden).length} di-hide`;
   document.getElementById('emptyState').hidden = data.length !== 0;
 }
 function startEdit(index) {
@@ -103,3 +108,10 @@ form.addEventListener('submit', event => {
 document.getElementById('cancelBtn').addEventListener('click', resetEdit);
 window.addEventListener('storage', event => { if (event.key === STORAGE_KEY) { resetEdit(); render(); } });
 render();
+
+// Tampilkan kembali semua transaksi dalam perhitungan.
+document.getElementById('showAll').addEventListener('click', () => {
+  const data = readData(); if (!data) return;
+  data.forEach(item => { if (item.ryzenHidden) delete item.ryzenHidden; });
+  try { writeData(data); render(); } catch(e) { alert('Gagal menyimpan perubahan.'); }
+});
